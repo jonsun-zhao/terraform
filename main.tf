@@ -1,5 +1,7 @@
 variable "tf_credentials" {}
 variable "tf_project_id" {}
+variable "gce_ssh_user" {}
+variable "gce_ssh_pub_key" {}
 
 provider "google" {
   credentials = file(var.tf_credentials)
@@ -27,9 +29,9 @@ resource "google_compute_instance" "vm_instance" {
   }
 }
 
-resource "google_compute_instance_template" "k8s-master-template" {
-  name        = "k8s-master-template"
-  description = "This template is used to k8s template."
+resource "google_compute_instance_template" "k8s-master-template-2" {
+  name        = "k8s-master-template-2"
+  description = "This template is used to k8s template, with ssh key build in."
 
   tags = ["k8s", "master"]
 
@@ -38,7 +40,7 @@ resource "google_compute_instance_template" "k8s-master-template" {
   }
 
   instance_description = "description assigned to instances"
-  machine_type         = "n1-standard-1"
+  machine_type         = "n1-standard-4"
   can_ip_forward       = false
 
   scheduling {
@@ -60,6 +62,7 @@ resource "google_compute_instance_template" "k8s-master-template" {
 
   metadata = {
     k8s = "master"
+    ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key)}"
   }
 
   service_account {
@@ -79,6 +82,6 @@ resource "google_compute_instance_group_manager" "k8s-master" {
   target_size        = "1"
   version {
     name              = "k8s-master"
-    instance_template  = google_compute_instance_template.k8s-master-template.self_link
+    instance_template  = google_compute_instance_template.k8s-master-template-2.self_link
   }
 }
