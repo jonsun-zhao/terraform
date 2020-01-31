@@ -127,6 +127,9 @@ resource "google_compute_instance_group_manager" "k8s-master" {
   }
 }
 
+output "k8s-master-ip" {
+  value = "${google_compute_instance.k8s-master*.network_interface.0.network_ip}"
+}
 
 resource "google_compute_instance_group_manager" "k8s-node" {
   name               = "k8s-node-igm"
@@ -137,4 +140,8 @@ resource "google_compute_instance_group_manager" "k8s-node" {
     name              = "k8s-node"
     instance_template  = google_compute_instance_template.k8s-node-template.self_link
   }
+}
+
+output "k8s-node-ip" {
+  value = "${join(",", google_compute_instance.k8s-node*.network_interface.0.network_ip)}"
 }
