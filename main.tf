@@ -50,7 +50,7 @@ resource "google_compute_instance_template" "k8s-master-template-2" {
 
   // Create a new boot disk from an image
   disk {
-    source_image = "cos-cloud/cos-stable"
+    source_image = "debian-cloud/debian-9"
     auto_delete  = true
     boot         = true
   }
@@ -62,6 +62,47 @@ resource "google_compute_instance_template" "k8s-master-template-2" {
 
   metadata = {
     k8s = "master"
+    ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key)}"
+  }
+
+  service_account {
+    scopes = ["userinfo-email", "compute-ro", "storage-ro"]
+  }
+}
+
+resource "google_compute_instance_template" "k8s-node-template" {
+  name        = "k8s-node-template"
+  description = "This template is used to k8s template, with ssh key build in."
+
+  tags = ["k8s", "node"]
+
+  labels = {
+    environment = "dev"
+  }
+
+  instance_description = "description assigned to instances"
+  machine_type         = "n1-standard-1"
+  can_ip_forward       = false
+
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+  }
+
+  // Create a new boot disk from an image
+  disk {
+    source_image = "debian-cloud/debian-9"
+    auto_delete  = true
+    boot         = true
+  }
+
+  network_interface {
+    network = "ci-cd-vpc"
+    subnetwork = "us-central1"
+  }
+
+  metadata = {
+    k8s = "node"
     ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key)}"
   }
 
@@ -83,5 +124,17 @@ resource "google_compute_instance_group_manager" "k8s-master" {
   version {
     name              = "k8s-master"
     instance_template  = google_compute_instance_template.k8s-master-template-2.self_link
+  }
+}
+
+
+resource "google_compute_instance_group_manager" "k8s-node" {
+  name               = "k8s-node-igm"
+  base_instance_name = "k8s-node"
+  zone               = "us-central1-c"
+  target_size        = "2"
+  version {
+    name              = "k8s-node"
+    instance_template  = google_compute_instance_template.k8s-node-template.self_link
   }
 }
