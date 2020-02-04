@@ -2,6 +2,12 @@ variable "tf_credentials" {}
 variable "tf_project_id" {}
 variable "gce_ssh_user" {}
 variable "gce_ssh_pub_key" {}
+variable "node_count" {
+  default = "2"
+}
+variable "master_count" {
+  default = "1"
+}
 
 provider "google" {
   credentials = file(var.tf_credentials)
@@ -126,16 +132,13 @@ resource "google_compute_instance_group_manager" "k8s-master" {
   name               = "k8s-master-igm"
   base_instance_name = "k8s-master"
   zone               = "us-central1-c"
-  target_size        = "1"
+  target_size        = "${var.node_count}"
   version {
     name              = "k8s-master"
     instance_template  = google_compute_instance_template.k8s-master-template-2.self_link
   }
 }
 
-output "k8s-master-ip" {
-  value = "${google_compute_instance.k8s-master*.network_interface.0.network_ip}"
-}
 
 resource "google_compute_instance_group_manager" "k8s-node" {
   name               = "k8s-node-igm"
@@ -148,6 +151,10 @@ resource "google_compute_instance_group_manager" "k8s-node" {
   }
 }
 
+output instances {
+  value = "${data.google_compute_instance_group.zonal.*.instances}"
+}
+
 output "k8s-node-ip" {
-  value = "${join(",", google_compute_instance.k8s-node*.network_interface.0.network_ip)}"
+  value = "${data.google_compute_instance_group.zonal.*.instances.network_interface.0.network_ip)}"
 }
