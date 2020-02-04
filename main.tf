@@ -58,6 +58,9 @@ resource "google_compute_instance_template" "k8s-master-template-2" {
   network_interface {
     network = "ci-cd-vpc"
     subnetwork = "us-central1"
+    access_config {
+      network_tier = "PREMIUM"
+    }
   }
 
   metadata = {
@@ -99,6 +102,9 @@ resource "google_compute_instance_template" "k8s-node-template" {
   network_interface {
     network = "ci-cd-vpc"
     subnetwork = "us-central1"
+    access_config {
+      network_tier = "PREMIUM"
+    }
   }
 
   metadata = {
