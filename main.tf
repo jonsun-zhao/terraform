@@ -132,7 +132,7 @@ resource "google_compute_instance_group_manager" "k8s-master" {
   name               = "k8s-master-igm"
   base_instance_name = "k8s-master"
   zone               = "us-central1-c"
-  target_size        = "${var.node_count}"
+  target_size        = "1"
   version {
     name              = "k8s-master"
     instance_template  = google_compute_instance_template.k8s-master-template-2.self_link
@@ -156,5 +156,5 @@ output instances {
 }
 
 output "k8s-node-ip" {
-  value = "${data.google_compute_instance_group.zonal.*.instances.network_interface.0.network_ip)}"
+  value = "${data.google_compute_instance_group.zonal.*.instances.network_interface.0.network_ip}"
 }
