@@ -151,10 +151,27 @@ resource "google_compute_instance_group_manager" "k8s-node" {
   }
 }
 
-output instances {
-  value = "${data.google_compute_instance_group.zonal.*.instances}"
+
+data "google_compute_instance_group" "k8s-master-igm" {
+  name = "k8s-master"
 }
 
-output "k8s-node-ip" {
-  value = "${data.google_compute_instance_group.zonal.*.instances.network_interface.0.network_ip}"
+data "google_compute_instance_group" "k8s-node-igm" { 
+  
+}
+
+data "google_compute_instance" "k8s-master.instances" {
+  name = "k8s-master-i"
+}
+
+output master-instances {
+  value = "${data.google_compute_instance_group.k8s-master-igm.instances}"
+}
+
+data "google_compute_instances" "master-instances" {
+  name = "master-instances-i"
+}
+
+output "k8s-master-internal-ip" {
+  value = "${data.google_compute_instance.master-instances.network_interface.0.network_ip}"
 }
